@@ -176,6 +176,14 @@ class DashboardTests(unittest.TestCase):
         hdr = {"Cookie": f"sc_session={self.server_mod.make_token()}"}
         status, body = self.call(op, "/api/voices", headers=hdr)
         self.assertEqual(status, 200, body)
+        self.assertIn("th-TH-PremwadeeNeural", body)
+        self.assertNotIn("f_young_warm", body)          # Wayu is hidden unless installed (non-commercial licence)
+        with tempfile.TemporaryDirectory() as wayu:
+            os.environ["WAYU_DIR"] = wayu
+            try:
+                status, body = self.call(op, "/api/voices", headers=hdr)
+            finally:
+                del os.environ["WAYU_DIR"]
         self.assertIn("f_young_warm", body)
         self.assertEqual(self.call(op, "/api/series/s", headers=hdr)[0], 200)
         self.assertEqual(self.call(op, "/api/episode/1/files", headers=hdr)[0], 200)
