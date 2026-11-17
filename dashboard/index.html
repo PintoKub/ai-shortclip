@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI ShortClip</title><link rel="stylesheet" href="/app.css"></head><body>
+<header><h1>AI ShortClip</h1><span class="muted small" id="total"></span><span class="grow"></span>
+<form method="post" action="/logout" style="margin:0"><button>ออกจากระบบ</button></form></header>
+<nav class="tabs">
+ <button class="tab on" data-t="story">① เนื้อเรื่อง<span id="n_story"></span></button>
+ <button class="tab" data-t="series">② ซีรีส์<span class="long"> (ตัวละคร · ตอน · lore)</span></button>
+ <button class="tab" data-t="produce">③ ผลิตตอน</button>
+ <button class="tab" data-t="agents">④ Agents<span id="n_agents"></span></button>
+ <button class="tab" data-t="accounts">⑤ บัญชีโพสต์</button>
+ <button class="tab" data-t="settings">⑥ ตั้งค่า</button>
+</nav>
+<main id="view"></main>
+<div class="toast" id="toast"></div>
+<script src="/app.js"></script>
+<script src="/publish.js"></script>
+<script src="/bible_edit.js"></script>
+<script src="/edit_stages.js"></script>
+<script src="/thumbs.js"></script>
+</body></html>

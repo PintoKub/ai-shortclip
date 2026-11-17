@@ -1,0 +1,7 @@
+{
+ "note": "ค่าที่ไม่ใช่ความลับของระบบโพสต์ — key/token อยู่ที่ secrets/publish/ (gitignored, 0600). public_base = URL สาธารณะของ dashboard (TikTok/Instagram ต้องใช้ https), contact_email แสดงในหน้า /about /privacy /terms",
+ "contact_email": "",
+ "public_base": "http://localhost:8099",
+ "instagram_graph_version": "v27.0",
+ "default_hashtags": ["#การ์ตูน", "#เรื่องสั้น", "#ซีรีส์"]
+}

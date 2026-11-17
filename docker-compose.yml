@@ -1,0 +1,12 @@
+services:
+  shortclip:
+    build: .
+    ports: ["127.0.0.1:8099:8099"]
+    env_file: .env
+    environment:
+      SHORTCLIP_DASH_PASS: /app/db/.dashboard_pass
+    volumes:
+      - ./projects:/app/projects
+      - ./db:/app/db
+      - ./plans:/app/plans
+      - ./secrets:/app/secrets

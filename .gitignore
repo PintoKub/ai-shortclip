@@ -1,0 +1,46 @@
+# media (ใหญ่) — เก็บเฉพาะ json/manifest/spec ใน git
+*.mp4
+*.wav
+!assets/sfx/*.wav
+*.mp3
+*.m4a
+check/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# sqlite (created on first run)
+db/*.db
+db/*.db-wal
+db/*.db-shm
+
+# runtime state (สร้างใหม่ได้)
+db/.locks/
+projects/**/logs/
+
+# dashboard secrets
+.dashboard_pass
+db/.dashboard_secret
+db/actions.log
+db/.resume_ok_*
+
+# planning work dirs (logs, raw json)
+plans/*/logs/
+plans/*.out
+plans/*/bible.part-*.json
+plans/*/*.wait
+
+# platform keys/tokens (publish)
+secrets/
+projects/**/thumbs/
+
+# local config / secrets
+.env
+projects/
+plans/
+db/claude-logs/
+db/shortclip.db
+.dashboard_pass
+!examples/**/*.wav

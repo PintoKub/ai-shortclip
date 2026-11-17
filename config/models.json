@@ -1,0 +1,19 @@
+{
+ "note": "Model per role. Plain aliases (sonnet / opus / haiku) or full Claude model ids work with your own ANTHROPIC_API_KEY. Behind a gateway/proxy, use the ids your gateway exposes and add them to `choices`.",
+ "default": "sonnet",
+ "writer": "sonnet",
+ "animator": "sonnet",
+ "planner": "sonnet",
+ "thumbnail": "sonnet",
+ "choices": [
+  {"id": "opus", "label": "Opus — strongest, best planning, most expensive"},
+  {"id": "sonnet", "label": "Sonnet — balanced (default)"},
+  {"id": "haiku", "label": "Haiku — cheapest and fastest, weaker drawing"}
+ ],
+ "roles": {
+  "planner": "Planner (ideas / concepts / summary / bible)",
+  "writer": "Script writer",
+  "animator": "Animator (draws the whole episode)",
+  "thumbnail": "Cover maker (clickbait cover text)"
+ }
+}

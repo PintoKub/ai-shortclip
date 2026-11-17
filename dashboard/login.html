@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI ShortClip · เข้าสู่ระบบ</title><style>
+:root{color-scheme:dark}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0e14;color:#e8edf5;font:15px/1.5 system-ui,"Noto Sans Thai",sans-serif}
+form{background:#131823;border:1px solid #263043;border-radius:14px;padding:28px;width:min(340px,90vw)}
+h1{font-size:20px;margin:0 0 18px}input,button{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:8px;border:1px solid #263043;background:#1b2434;color:#e8edf5;font-size:15px}
+button{margin-top:12px;background:#2c5cc5;border-color:#2c5cc5;cursor:pointer}.bad{color:#ff7588;margin-top:10px;display:none}
+</style></head><body>
+<form method="post" action="/login"><h1>AI ShortClip</h1>
+<input type="password" name="password" placeholder="รหัสผ่าน" autocomplete="current-password" autofocus required>
+<button type="submit">เข้าสู่ระบบ</button><div class="bad" id="bad">รหัสผ่านไม่ถูกต้อง</div></form>
+<script>if(location.search.includes('bad=1'))document.getElementById('bad').style.display='block'</script>
+</body></html>
