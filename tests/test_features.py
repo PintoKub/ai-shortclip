@@ -221,7 +221,7 @@ class RateLimitTests(unittest.TestCase):
         good = json.dumps({"subtype": "success", "usage": {"output_tokens": 1}, "is_error": False,
                            "total_cost_usd": 0.1, "result": "ok"})
 
-        def fake_run(cmd, *, cwd, log_path, timeout, env=None):
+        def fake_run(cmd, *, cwd, log_path, timeout, env=None, stdin_text=None):
             calls.append(1)
             log_path.write_text(bad if len(calls) == 1 else good)
             if len(calls) == 1:
@@ -499,7 +499,10 @@ class QuotaWaitMarkerTests(unittest.TestCase):
             if len(calls) == 1:
                 raise ext.StepError("429")
             log.write_text('{"subtype":"success","usage":{},"total_cost_usd":0.1}')
+        orig_env = ext.process_env
         ext.run_process, ext.rate_limit_wait = run, lambda p: 120
+        ext.process_env = lambda require_key=True: {}   # no real key needed (CI has none)
+        self.addCleanup(setattr, ext, "process_env", orig_env)
         self.addCleanup(setattr, ext, "run_process", orig_run)
         self.addCleanup(setattr, ext, "rate_limit_wait", orig_wait)
         ext.claude_json("p", model="m", cwd=Path(tmp.name), log_path=log, max_turns=1,

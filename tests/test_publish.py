@@ -115,9 +115,10 @@ class AccountTests(PublishBase):
         self.acc.set_app("instagram", {"app_id": "123", "app_secret": "s"})
         self.connect("instagram")
         d = self.root / "secrets/publish"
-        self.assertEqual(stat.S_IMODE(d.stat().st_mode), 0o700)
-        for f in d.glob("*.json"):
-            self.assertEqual(stat.S_IMODE(f.stat().st_mode), 0o600, f.name)
+        if os.name != "nt":  # Windows has no POSIX modes (chmod only toggles read-only); privacy there = the user profile ACL
+            self.assertEqual(stat.S_IMODE(d.stat().st_mode), 0o700)
+            for f in d.glob("*.json"):
+                self.assertEqual(stat.S_IMODE(f.stat().st_mode), 0o600, f.name)
         self.assertNotIn("IG-LONG", json.dumps(self.acc.status()))
         self.acc.set_app("instagram", {"app_id": "999", "app_secret": "s2"})
         self.assertFalse(self.acc.status()["instagram"]["connected"])
