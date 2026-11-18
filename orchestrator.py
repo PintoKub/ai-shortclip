@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+from shortclip.compat import ensure_utf8_mode
 from shortclip.external import StepError
 from shortclip.pipeline import Pipeline
 from shortclip.validate import ValidationError
@@ -315,4 +316,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    ensure_utf8_mode()
     sys.exit(main())

@@ -13,6 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from .compat import WINDOWS, resolve_cmd
+
 HOME = Path.home()
 ROOT = Path(__file__).resolve().parent.parent
 FFMPEG = os.environ.get("FFMPEG") or shutil.which("ffmpeg") or "ffmpeg"
@@ -98,15 +100,18 @@ def claude_logged_in() -> bool:
         '"oauthAccount"' in (HOME / ".claude.json").read_text(errors="replace")
 
 
-def run_process(cmd: list[str], *, cwd: Path, log_path: Path, timeout: int, env=None) -> dict:
+def run_process(cmd: list[str], *, cwd: Path, log_path: Path, timeout: int, env=None, stdin_text=None) -> dict:
     """Run without shell; return parsed output and keep complete logs on disk."""
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    with log_path.open("w") as log:
+    cmd = resolve_cmd(cmd)
+    with log_path.open("w", encoding="utf-8") as log:
         log.write("COMMAND: " + " ".join(cmd) + "\n\n")
         log.flush()
         try:
             proc = subprocess.run(cmd, cwd=cwd, env=env or process_env(require_key=False), stdout=log,
-                                  stderr=subprocess.STDOUT, text=True, timeout=timeout, check=False)
+                                  stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                                  timeout=timeout, check=False,
+                                  **({"input": stdin_text} if stdin_text is not None else {"stdin": subprocess.DEVNULL}))
         except subprocess.TimeoutExpired as exc:
             log.write(f"\nTIMEOUT after {timeout}s\n")
             raise StepError(f"timeout: {cmd[0]} after {timeout}s") from exc
@@ -139,10 +144,14 @@ def claude_json(prompt: str, *, model: str, cwd: Path, log_path: Path, max_turns
     for attempt in range(3):
         # prompt may be a callable: a retry after a mid-run 429 can then tell Claude what is already on disk
         text = prompt() if callable(prompt) else prompt
-        cmd = ["claude", "-p", text, "--model", model, "--allowedTools", tools,
+        # On Windows `claude` is usually a .cmd shim, and cmd.exe cuts a multi-line argument at the first
+        # newline: send the prompt on stdin there (`claude -p` reads it when no prompt argument is given).
+        via_stdin = WINDOWS
+        cmd = ["claude", "-p", *([] if via_stdin else [text]), "--model", model, "--allowedTools", tools,
                "--max-turns", str(max_turns), "--output-format", "json"]
         try:
-            run_process(cmd, cwd=cwd, log_path=log_path, timeout=timeout, env=process_env(require_key=True))
+            run_process(cmd, cwd=cwd, log_path=log_path, timeout=timeout, env=process_env(require_key=True),
+                        **({"stdin_text": text} if via_stdin else {}))
             break
         except StepError:
             wait = rate_limit_wait(log_path)

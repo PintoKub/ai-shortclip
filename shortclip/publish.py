@@ -553,7 +553,8 @@ class Poster:
     def _duration(path: Path) -> float | None:
         try:
             import subprocess
-            out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+            from .external import FFPROBE
+            out = subprocess.run([str(FFPROBE), "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                                   str(path)], capture_output=True, text=True, timeout=30).stdout
             return float(out.strip())
         except (OSError, ValueError):

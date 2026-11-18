@@ -2,7 +2,7 @@
 """Dashboard. stdlib only; bind defaults to localhost.
 
 SQLite is opened read-only. The only writes happen through `orchestrator.py`, started as a
-detached `systemd-run --user` unit by the action endpoints (approve / reject / new / resume / cancel),
+detached process (a `systemd-run --user` unit where available) by the action endpoints (approve / reject / new / resume / cancel),
 so the state machine, locks and cost accounting stay in one place.
 
 Auth: one password in `.dashboard_pass` (repo root, chmod 600). Login sets an HMAC-signed,
@@ -34,6 +34,8 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:  # the service starts in dashboard/'s parent but runs the file directly
     sys.path.insert(0, str(ROOT))
+from shortclip.compat import detached_popen_kwargs, ensure_utf8_mode, pid_alive  # noqa: E402
+
 DB_PATH = Path(os.environ.get("SHORTCLIP_DB", ROOT / "db/shortclip.db"))
 HTML = Path(__file__).with_name("index.html")
 LOGIN_HTML = Path(__file__).with_name("login.html")
@@ -125,11 +127,14 @@ def launch(args: list[str], label: str) -> str:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if not proc.returncode:
             return unit
-    # portable fallback (macOS, Docker, no user systemd): detached child that outlives the request
+    # portable fallback (Windows, macOS, Docker, no user systemd): detached child that outlives the request
     log.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.Popen(["/bin/bash", "-c", shell, "orchestrator", "--db", str(DB_PATH), *args], cwd=ROOT,
-                     env=os.environ.copy(), start_new_session=True, stdin=subprocess.DEVNULL,
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with log.open("a", encoding="utf-8") as out:
+        out.write(f"== {time.strftime('%Y-%m-%dT%H:%M:%S%z')} {unit}: orchestrator.py {' '.join(args)}\n")
+        out.flush()
+        subprocess.Popen([sys.executable, "-u", str(ROOT / "orchestrator.py"), "--db", str(DB_PATH), *args],
+                         cwd=ROOT, env=os.environ.copy(), stdin=subprocess.DEVNULL, stdout=out,
+                         stderr=subprocess.STDOUT, **detached_popen_kwargs())
     return unit
 
 
@@ -145,11 +150,7 @@ AGENT_ROLES = [
 
 
 def _alive(pid) -> bool:
-    try:
-        os.kill(int(pid), 0)
-        return True
-    except (OSError, TypeError, ValueError):
-        return False
+    return pid_alive(pid)
 
 
 def _claude_activity(log_path: str | None) -> list[str]:
@@ -516,13 +517,8 @@ class Handler(BaseHTTPRequestHandler):
 
     @staticmethod
     def job_has_live_pid(job_id: int) -> bool:
-        for row in query("SELECT pid FROM steps WHERE job_id=? AND status='running' AND pid IS NOT NULL", (job_id,)):
-            try:
-                os.kill(int(row["pid"]), 0)
-                return True
-            except (OSError, ValueError):
-                continue
-        return False
+        return any(pid_alive(row["pid"]) for row in
+                   query("SELECT pid FROM steps WHERE job_id=? AND status='running' AND pid IS NOT NULL", (job_id,)))
 
     def job_voice(self, job_id: int, body: dict):
         from shortclip.pipeline import clean_voice
@@ -1050,4 +1046,5 @@ def main():
 
 
 if __name__ == "__main__":
+    ensure_utf8_mode()
     main()

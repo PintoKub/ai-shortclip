@@ -46,6 +46,28 @@ cp .env.example .env && docker compose up --build     # then open http://127.0.0
 
 The dashboard password is generated on first start and saved in `.dashboard_pass` (Docker: `db/.dashboard_pass`).
 
+## Windows (`ShortClip.exe`)
+
+No Python needed. Download `ShortClip-windows-x64.zip` from the latest **Windows exe** GitHub Actions run
+(Artifacts) or from a Release, unzip it somewhere writable, then:
+
+```powershell
+winget install Gyan.FFmpeg
+winget install OpenJS.NodeJS.LTS
+npm i -g @anthropic-ai/claude-code
+```
+
+Double-click `ShortClip.exe`: it creates `.env` (put your key there), prints the dashboard password and opens
+http://127.0.0.1:8099. `ShortClip.exe doctor` checks the tools, `ShortClip.exe setup` downloads Chromium for covers,
+`ShortClip.exe orchestrator …` is the CLI. Details: [`packaging/README-windows.txt`](packaging/README-windows.txt).
+
+Build it yourself (on Windows; PyInstaller does not cross-compile):
+
+```powershell
+pip install -r requirements.txt pyinstaller
+python packaging/build_exe.py      # -> dist\ShortClip\ShortClip.exe and dist\ShortClip-windows-*.zip
+```
+
 ## Your key (`.env`)
 
 ```bash
@@ -93,7 +115,7 @@ Respect each platform's policy on AI/repetitious content.
 
 ## Repo map
 
-- `orchestrator.py` — state machine / CLI; `shortclip/` — pipeline, planning, publishing, validation
+- `launcher.py` — entry point of `ShortClip.exe` (`packaging/` builds it); `orchestrator.py` — state machine / CLI; `shortclip/` — pipeline, planning, publishing, validation
 - `dashboard/` — stdlib HTTP server + vanilla JS UI (password login, per-IP rate limit, CSRF header)
 - `tools/` — TTS + karaoke + mix (`tts_natural.py`), retime, finalize/QA, selftests
 - `agents/` — writer and planner prompts; `CLAUDE.md` — rules the animator follows

@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 from . import db
+from .compat import pid_alive
 from .external import StepError, claude_json, load_models, model_choices, parse_claude_log
 from .usage import merge_usage
 
@@ -156,11 +157,7 @@ def validate_bible(data, episodes: int, start: int, cache: Path, strict: bool = 
 
 
 def _pid_alive(pid) -> bool:
-    try:
-        os.kill(int(pid), 0)
-        return True
-    except (OSError, TypeError, ValueError):
-        return False
+    return pid_alive(pid)
 
 
 def existing_parts(d: Path) -> list[tuple[str, str]]:

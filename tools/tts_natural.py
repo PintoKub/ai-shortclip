@@ -768,6 +768,8 @@ def main():
         os.replace(tmp, hook_wav)
         json.dump({"factor": factor, "title_end_before": rows[0]["end"]}, open(marker, "w"))
         print(f"title line ended at {rows[0]['end']:.2f}s > {TITLE_END_MAX}s: sped up x{factor}, re-timing", flush=True)
+        if os.name == "nt":  # Windows execv detaches: the caller would see this process exit before the redo ends
+            sys.exit(subprocess.call([sys.executable, *sys.argv]))
         os.execv(sys.executable, [sys.executable, *sys.argv])
     json.dump({"align": src, "lines": rows},
               open(os.path.join(ep, "audio", "timing_raw.json"), "w"),

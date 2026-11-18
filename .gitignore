@@ -44,3 +44,7 @@ db/claude-logs/
 db/shortclip.db
 .dashboard_pass
 !examples/**/*.wav
+
+# desktop build (packaging/build_exe.py)
+dist/
+build/

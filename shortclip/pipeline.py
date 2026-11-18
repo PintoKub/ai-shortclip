@@ -1,7 +1,6 @@
 """Phase-1 job state machine. LLMs are subprocesses, never imported here."""
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import re
@@ -13,6 +12,7 @@ from pathlib import Path
 from . import db
 from .briefs import animator_brief, polish_prompt, writer_prompt
 from .planning import bible_for_animator, bible_for_writer
+from .compat import try_lock, unlock
 from .external import StepError, claude_json, hyperframes, lint_zero, load_models, make_web, model_choices, newest_draft, parse_claude_log, probe_duration, tool
 from .usage import merge_usage
 from .validate import BEATS as BEATS_ALL, ValidationError, read_json, validate_script, validate_shots, verify_composition, write_manifest
@@ -85,15 +85,13 @@ class Pipeline:
         lockdir = self.db_path.parent / ".locks"
         lockdir.mkdir(parents=True, exist_ok=True)
         handle = (lockdir / f"job-{job_id}.lock").open("w")
-        try:
-            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as exc:
+        if not try_lock(handle):
             handle.close()
-            raise StepError(f"job {job_id} is already being advanced by another process") from exc
+            raise StepError(f"job {job_id} is already being advanced by another process")
         try:
             yield
         finally:
-            fcntl.flock(handle, fcntl.LOCK_UN)
+            unlock(handle)
             handle.close()
 
     def series_settings(self, slug: str) -> dict:

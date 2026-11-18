@@ -35,7 +35,7 @@ def log(msg):
 def voice_ok(voice, tmp):
     out = tmp / "probe.mp3"
     out.unlink(missing_ok=True)
-    r = subprocess.run([tn.EDGE, "--voice", voice, "--text", PROBE, "--write-media", str(out)],
+    r = subprocess.run([*tn.EDGE, "--voice", voice, "--text", PROBE, "--write-media", str(out)],
                        capture_output=True, text=True, timeout=90)
     return r.returncode == 0 and out.exists() and out.stat().st_size > 8000
 

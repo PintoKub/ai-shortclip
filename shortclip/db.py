@@ -7,6 +7,7 @@ import sqlite3
 import threading
 from pathlib import Path
 
+from .compat import pid_alive
 from .usage import normalize_rows
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -94,14 +95,7 @@ def close_stale_steps(con, job_id: int) -> int:
     rows = con.execute("SELECT id,pid FROM steps WHERE job_id=? AND status='running'", (job_id,)).fetchall()
     count = 0
     for row in rows:
-        alive = False
-        if row["pid"]:
-            try:
-                os.kill(row["pid"], 0)
-                alive = True
-            except (ProcessLookupError, PermissionError):
-                alive = False
-        if not alive:
+        if not (row["pid"] and pid_alive(row["pid"])):
             con.execute("UPDATE steps SET status='queued',pid=NULL,error='interrupted; queued for resume' WHERE id=?", (row["id"],))
             count += 1
     if count:
